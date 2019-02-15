@@ -1,0 +1,49 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: {{ include "mackerel.fullname" . }}
+  labels:
+    name: {{ include "mackerel.name" . }}
+    app.kubernetes.io/name: {{ include "mackerel.name" . }}
+    helm.sh/chart: {{ include "mackerel.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  template:
+    metadata:
+      labels:
+        app: {{ include "mackerel.name" . }}
+        app.kubernetes.io/name: {{ include "mackerel.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: MY_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: apikey
+              value: {{ .Values.mackerel.apikey }}
+            - name: opts
+              value: "-role={{ .Values.mackerel.service }}:{{ .Values.mackerel.role }}"
+            - name: enable_docker_plugin
+              value: "{{ .Values.mackerel.enable_docker_plugin }}"
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/usr/bin/mackerel-agent", "retire", "-force"]
+          volumeMounts:
+            - name: docker-sock
+              mountPath: /var/run/docker.sock
+            - name: mackerel-id
+              mountPath: /var/lib/mackerel-agent/
+      volumes:
+        - name: docker-sock
+          hostPath:
+            path: /var/run/docker.sock
+        - name: mackerel-id
+          hostPath:
+            path: /var/lib/mackerel-agent/
