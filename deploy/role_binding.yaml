@@ -1,0 +1,11 @@
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: mackerel-operator-helm
+subjects:
+- kind: ServiceAccount
+  name: mackerel-operator-helm
+roleRef:
+  kind: Role
+  name: mackerel-operator-helm
+  apiGroup: rbac.authorization.k8s.io

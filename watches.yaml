@@ -1,0 +1,5 @@
+---
+- version: v1alpha1
+  group: kirishikistudios.com
+  kind: Mackerel
+  chart: /opt/helm/helm-charts/mackerel
